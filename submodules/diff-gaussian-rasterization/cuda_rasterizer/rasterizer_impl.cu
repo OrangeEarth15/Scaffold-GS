@@ -152,14 +152,27 @@ void CudaRasterizer::Rasterizer::markVisible(
 		present);
 }
 
-CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& chunk, size_t P)
+CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& chunk, size_t P, bool inference_mode)
 {
 	GeometryState geom;
 	obtain(chunk, geom.depths, P, 128);
-	obtain(chunk, geom.clamped, P * 3, 128);
+
+	// OPTIMIZATION: Skip backward-only buffers in inference mode
+	if (!inference_mode) {
+		obtain(chunk, geom.clamped, P * 3, 128);  // Only needed for SH backward
+	} else {
+		geom.clamped = nullptr;  // Save 6.6 MB for 2.2M gaussians
+	}
+
 	obtain(chunk, geom.internal_radii, P, 128);
 	obtain(chunk, geom.means2D, P, 128);
-	obtain(chunk, geom.cov3D, P * 6, 128);
+
+	if (!inference_mode) {
+		obtain(chunk, geom.cov3D, P * 6, 128);  // Only needed for backward
+	} else {
+		geom.cov3D = nullptr;  // Save 52.8 MB for 2.2M gaussians - will use local array in preprocess
+	}
+
 	obtain(chunk, geom.conic_opacity, P, 128);
 	obtain(chunk, geom.rgb, P * 3, 128);
 	obtain(chunk, geom.tiles_touched, P, 128);
@@ -169,26 +182,34 @@ CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& ch
 	return geom;
 }
 
-CudaRasterizer::ImageState CudaRasterizer::ImageState::fromChunk(char*& chunk, size_t N)
+CudaRasterizer::ImageState CudaRasterizer::ImageState::fromChunk(char*& chunk, size_t pixel_count, size_t tile_count)
 {
 	ImageState img;
-	obtain(chunk, img.accum_alpha, N, 128);
-	obtain(chunk, img.n_contrib, N, 128);
-	obtain(chunk, img.ranges, N, 128);
+	// Pixel-based buffers
+	obtain(chunk, img.accum_alpha, pixel_count, 128);
+	obtain(chunk, img.n_contrib, pixel_count, 128);
+	// Tile-based buffer - FIXED: was incorrectly allocated as pixel_count, causing 254x over-allocation
+	obtain(chunk, img.ranges, tile_count, 128);
 	return img;
 }
 
 CudaRasterizer::BinningState CudaRasterizer::BinningState::fromChunk(char*& chunk, size_t P)
 {
 	BinningState binning;
-	obtain(chunk, binning.point_list, P, 128);
-	obtain(chunk, binning.point_list_unsorted, P, 128);
-	obtain(chunk, binning.point_list_keys, P, 128);
-	obtain(chunk, binning.point_list_keys_unsorted, P, 128);
+	// Optimization: Only allocate 2 buffers instead of 4 for in-place sorting
+	// Saves 50% memory: 24P bytes -> 12P bytes
+	obtain(chunk, binning.point_list_keys, P, 128);      // 8P bytes (keys buffer)
+	obtain(chunk, binning.point_list, P, 128);           // 4P bytes (values buffer)
+
+	// Use same buffers for unsorted and sorted data (in-place sorting)
+	binning.point_list_keys_unsorted = binning.point_list_keys;
+	binning.point_list_unsorted = binning.point_list;
+
+	// Calculate sorting workspace size (CUB still needs temp space for in-place sorting)
 	cub::DeviceRadixSort::SortPairs(
 		nullptr, binning.sorting_size,
-		binning.point_list_keys_unsorted, binning.point_list_keys,
-		binning.point_list_unsorted, binning.point_list, P);
+		binning.point_list_keys, binning.point_list_keys,  // Same buffer for in-place sort
+		binning.point_list, binning.point_list, P);        // Same buffer for in-place sort
 	obtain(chunk, binning.list_sorting_space, binning.sorting_size, 128);
 	return binning;
 }
@@ -222,9 +243,11 @@ int CudaRasterizer::Rasterizer::forward(
 	const float focal_y = height / (2.0f * tan_fovy);
 	const float focal_x = width / (2.0f * tan_fovx);
 
-	size_t chunk_size = required<GeometryState>(P);
+	// Auto-detect inference mode: Scaffold-GS always uses colors_precomp in inference
+	bool inference_mode = (shs == nullptr && colors_precomp != nullptr);
+	size_t chunk_size = required_geometry(P, inference_mode);
 	char* chunkptr = geometryBuffer(chunk_size);
-	GeometryState geomState = GeometryState::fromChunk(chunkptr, P);
+	GeometryState geomState = GeometryState::fromChunk(chunkptr, P, inference_mode);
 
 	if (radii == nullptr)
 	{
@@ -235,9 +258,10 @@ int CudaRasterizer::Rasterizer::forward(
 	dim3 block(BLOCK_X, BLOCK_Y, 1);
 
 	// Dynamically resize image-based auxiliary buffers during training
-	size_t img_chunk_size = required<ImageState>(width * height);
+	size_t tile_count = tile_grid.x * tile_grid.y;
+	size_t img_chunk_size = required_image(width * height, tile_count);
 	char* img_chunkptr = imageBuffer(img_chunk_size);
-	ImageState imgState = ImageState::fromChunk(img_chunkptr, width * height);
+	ImageState imgState = ImageState::fromChunk(img_chunkptr, width * height, tile_count);
 
 	if (NUM_CHANNELS != 3 && colors_precomp == nullptr)
 	{
@@ -360,7 +384,8 @@ void CudaRasterizer::Rasterizer::visible_filter(
 
 	size_t chunk_size = required<GeometryState>(P);
 	char* chunkptr = geometryBuffer(chunk_size);
-	GeometryState geomState = GeometryState::fromChunk(chunkptr, P);
+	// visible_filter is inference-only, enable optimizations
+	GeometryState geomState = GeometryState::fromChunk(chunkptr, P, true);
 
 	if (radii == nullptr)
 	{
@@ -371,9 +396,10 @@ void CudaRasterizer::Rasterizer::visible_filter(
 	// dim3 block(BLOCK_X, BLOCK_Y, 1);
 
 	// Dynamically resize image-based auxiliary buffers during training
-	size_t img_chunk_size = required<ImageState>(width * height);
+	size_t tile_count = tile_grid.x * tile_grid.y;
+	size_t img_chunk_size = required_image(width * height, tile_count);
 	char* img_chunkptr = imageBuffer(img_chunk_size);
-	ImageState imgState = ImageState::fromChunk(img_chunkptr, width * height);
+	ImageState imgState = ImageState::fromChunk(img_chunkptr, width * height, tile_count);
 
 	// Run preprocessing per-Gaussian (transformation, bounding, conversion of SHs to RGB)
 	CHECK_CUDA(FORWARD::filter_preprocess(
@@ -431,7 +457,6 @@ void CudaRasterizer::Rasterizer::backward(
 {
 	GeometryState geomState = GeometryState::fromChunk(geom_buffer, P);
 	BinningState binningState = BinningState::fromChunk(binning_buffer, R);
-	ImageState imgState = ImageState::fromChunk(img_buffer, width * height);
 
 	if (radii == nullptr)
 	{
@@ -443,6 +468,9 @@ void CudaRasterizer::Rasterizer::backward(
 
 	const dim3 tile_grid((width + BLOCK_X - 1) / BLOCK_X, (height + BLOCK_Y - 1) / BLOCK_Y, 1);
 	const dim3 block(BLOCK_X, BLOCK_Y, 1);
+
+	size_t tile_count = tile_grid.x * tile_grid.y;
+	ImageState imgState = ImageState::fromChunk(img_buffer, width * height, tile_count);
 
 	// Compute loss gradients w.r.t. 2D mean position, conic matrix,
 	// opacity and RGB of Gaussians from per-pixel loss gradients.

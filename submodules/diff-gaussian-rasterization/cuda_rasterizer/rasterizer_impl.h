@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstdint>
 #include "rasterizer.h"
 #include <cuda_runtime_api.h>
 
@@ -40,16 +41,16 @@ namespace CudaRasterizer
 		uint32_t* point_offsets;
 		uint32_t* tiles_touched;
 
-		static GeometryState fromChunk(char*& chunk, size_t P);
+		static GeometryState fromChunk(char*& chunk, size_t P, bool inference_mode = false);
 	};
 
 	struct ImageState
 	{
 		uint2* ranges;
-		uint32_t* n_contrib;
+		uint16_t* n_contrib;  // Changed from uint32_t: max gaussians per pixel rarely exceeds 65535
 		float* accum_alpha;
 
-		static ImageState fromChunk(char*& chunk, size_t N);
+		static ImageState fromChunk(char*& chunk, size_t pixel_count, size_t tile_count);
 	};
 
 	struct BinningState
@@ -64,11 +65,27 @@ namespace CudaRasterizer
 		static BinningState fromChunk(char*& chunk, size_t P);
 	};
 
-	template<typename T> 
+	template<typename T>
 	size_t required(size_t P)
 	{
 		char* size = nullptr;
 		T::fromChunk(size, P);
+		return ((size_t)size) + 128;
+	}
+
+	// Helper for GeometryState with inference_mode
+	inline size_t required_geometry(size_t P, bool inference_mode)
+	{
+		char* size = nullptr;
+		GeometryState::fromChunk(size, P, inference_mode);
+		return ((size_t)size) + 128;
+	}
+
+	// Helper for ImageState which needs both pixel_count and tile_count
+	inline size_t required_image(size_t pixel_count, size_t tile_count)
+	{
+		char* size = nullptr;
+		ImageState::fromChunk(size, pixel_count, tile_count);
 		return ((size_t)size) + 128;
 	}
 };

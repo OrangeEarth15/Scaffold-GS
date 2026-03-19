@@ -66,9 +66,13 @@ __device__ glm::vec3 computeColorFromSH(int idx, int deg, int max_coeffs, const 
 
 	// RGB colors are clamped to positive values. If values are
 	// clamped, we need to keep track of this for the backward pass.
-	clamped[3 * idx + 0] = (result.x < 0);
-	clamped[3 * idx + 1] = (result.y < 0);
-	clamped[3 * idx + 2] = (result.z < 0);
+	// Only write to clamped buffer if it's allocated (training mode)
+	if (clamped != nullptr)
+	{
+		clamped[3 * idx + 0] = (result.x < 0);
+		clamped[3 * idx + 1] = (result.y < 0);
+		clamped[3 * idx + 2] = (result.z < 0);
+	}
 	return glm::max(result, 0.0f);
 }
 
@@ -202,16 +206,23 @@ __global__ void preprocessCUDA(int P, int D, int M,
 	float3 p_proj = { p_hom.x * p_w, p_hom.y * p_w, p_hom.z * p_w };
 
 	// If 3D covariance matrix is precomputed, use it, otherwise compute
-	// from scaling and rotation parameters. 
+	// from scaling and rotation parameters.
 	const float* cov3D;
+	float local_cov3D[6];  // Stack-allocated for inference mode
 	if (cov3D_precomp != nullptr)
 	{
 		cov3D = cov3D_precomp + idx * 6;
 	}
 	else
 	{
-		computeCov3D(scales[idx], scale_modifier, rotations[idx], cov3Ds + idx * 6);
-		cov3D = cov3Ds + idx * 6;
+		// OPTIMIZATION: Use local array if cov3Ds is nullptr (inference mode)
+		if (cov3Ds != nullptr) {
+			computeCov3D(scales[idx], scale_modifier, rotations[idx], cov3Ds + idx * 6);
+			cov3D = cov3Ds + idx * 6;
+		} else {
+			computeCov3D(scales[idx], scale_modifier, rotations[idx], local_cov3D);
+			cov3D = local_cov3D;
+		}
 	}
 
 	// Compute 2D screen-space covariance matrix
@@ -301,16 +312,23 @@ __global__ void filter_preprocessCUDA(int P, int M,
 	float3 p_proj = { p_hom.x * p_w, p_hom.y * p_w, p_hom.z * p_w };
 
 	// If 3D covariance matrix is precomputed, use it, otherwise compute
-	// from scaling and rotation parameters. 
+	// from scaling and rotation parameters.
 	const float* cov3D;
+	float local_cov3D[6];  // Stack-allocated for inference mode
 	if (cov3D_precomp != nullptr)
 	{
 		cov3D = cov3D_precomp + idx * 6;
 	}
 	else
 	{
-		computeCov3D(scales[idx], scale_modifier, rotations[idx], cov3Ds + idx * 6);
-		cov3D = cov3Ds + idx * 6;
+		// OPTIMIZATION: Use local array if cov3Ds is nullptr (inference mode)
+		if (cov3Ds != nullptr) {
+			computeCov3D(scales[idx], scale_modifier, rotations[idx], cov3Ds + idx * 6);
+			cov3D = cov3Ds + idx * 6;
+		} else {
+			computeCov3D(scales[idx], scale_modifier, rotations[idx], local_cov3D);
+			cov3D = local_cov3D;
+		}
 	}
 
 	// Compute 2D screen-space covariance matrix
@@ -354,7 +372,7 @@ renderCUDA(
 	const float* __restrict__ features,
 	const float4* __restrict__ conic_opacity,
 	float* __restrict__ final_T,
-	uint32_t* __restrict__ n_contrib,
+	uint16_t* __restrict__ n_contrib,
 	const float* __restrict__ bg_color,
 	float* __restrict__ out_color)
 {
@@ -470,7 +488,7 @@ void FORWARD::render(
 	const float* colors,
 	const float4* conic_opacity,
 	float* final_T,
-	uint32_t* n_contrib,
+	uint16_t* n_contrib,
 	const float* bg_color,
 	float* out_color)
 {

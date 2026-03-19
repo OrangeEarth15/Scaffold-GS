@@ -1,0 +1,98 @@
+Looking for config file in output/garden_dense/cfg_args
+Config file found: output/garden_dense/cfg_args
+Loading trained model at iteration 30000 [19/03 03:38:07]
+Reading camera 1/185Reading camera 2/185Reading camera 3/185Reading camera 4/185Reading camera 5/185Reading camera 6/185Reading camera 7/185Reading camera 8/185Reading camera 9/185Reading camera 10/185Reading camera 11/185Reading camera 12/185Reading camera 13/185Reading camera 14/185Reading camera 15/185Reading camera 16/185Reading camera 17/185Reading camera 18/185Reading camera 19/185Reading camera 20/185Reading camera 21/185Reading camera 22/185Reading camera 23/185Reading camera 24/185Reading camera 25/185Reading camera 26/185Reading camera 27/185Reading camera 28/185Reading camera 29/185Reading camera 30/185Reading camera 31/185Reading camera 32/185Reading camera 33/185Reading camera 34/185Reading camera 35/185Reading camera 36/185Reading camera 37/185Reading camera 38/185Reading camera 39/185Reading camera 40/185Reading camera 41/185Reading camera 42/185Reading camera 43/185Reading camera 44/185Reading camera 45/185Reading camera 46/185Reading camera 47/185Reading camera 48/185Reading camera 49/185Reading camera 50/185Reading camera 51/185Reading camera 52/185Reading camera 53/185Reading camera 54/185Reading camera 55/185Reading camera 56/185Reading camera 57/185Reading camera 58/185Reading camera 59/185Reading camera 60/185Reading camera 61/185Reading camera 62/185Reading camera 63/185Reading camera 64/185Reading camera 65/185Reading camera 66/185Reading camera 67/185Reading camera 68/185Reading camera 69/185Reading camera 70/185Reading camera 71/185Reading camera 72/185Reading camera 73/185Reading camera 74/185Reading camera 75/185Reading camera 76/185Reading camera 77/185Reading camera 78/185Reading camera 79/185Reading camera 80/185Reading camera 81/185Reading camera 82/185Reading camera 83/185Reading camera 84/185Reading camera 85/185Reading camera 86/185Reading camera 87/185Reading camera 88/185Reading camera 89/185Reading camera 90/185Reading camera 91/185Reading camera 92/185Reading camera 93/185Reading camera 94/185Reading camera 95/185Reading camera 96/185Reading camera 97/185Reading camera 98/185Reading camera 99/185Reading camera 100/185Reading camera 101/185Reading camera 102/185Reading camera 103/185Reading camera 104/185Reading camera 105/185Reading camera 106/185Reading camera 107/185Reading camera 108/185Reading camera 109/185Reading camera 110/185Reading camera 111/185Reading camera 112/185Reading camera 113/185Reading camera 114/185Reading camera 115/185Reading camera 116/185Reading camera 117/185Reading camera 118/185Reading camera 119/185Reading camera 120/185Reading camera 121/185Reading camera 122/185Reading camera 123/185Reading camera 124/185Reading camera 125/185Reading camera 126/185Reading camera 127/185Reading camera 128/185Reading camera 129/185Reading camera 130/185Reading camera 131/185Reading camera 132/185Reading camera 133/185Reading camera 134/185Reading camera 135/185Reading camera 136/185Reading camera 137/185Reading camera 138/185Reading camera 139/185Reading camera 140/185Reading camera 141/185Reading camera 142/185Reading camera 143/185Reading camera 144/185Reading camera 145/185Reading camera 146/185Reading camera 147/185Reading camera 148/185Reading camera 149/185Reading camera 150/185Reading camera 151/185Reading camera 152/185Reading camera 153/185Reading camera 154/185Reading camera 155/185Reading camera 156/185Reading camera 157/185Reading camera 158/185Reading camera 159/185Reading camera 160/185Reading camera 161/185Reading camera 162/185Reading camera 163/185Reading camera 164/185Reading camera 165/185Reading camera 166/185Reading camera 167/185Reading camera 168/185Reading camera 169/185Reading camera 170/185Reading camera 171/185Reading camera 172/185Reading camera 173/185Reading camera 174/185Reading camera 175/185Reading camera 176/185Reading camera 177/185Reading camera 178/185Reading camera 179/185Reading camera 180/185Reading camera 181/185Reading camera 182/185Reading camera 183/185Reading camera 184/185Reading camera 185/185 [19/03 03:38:08]
+start fetching data from ply file [19/03 03:38:08]
+Loading Training Cameras [19/03 03:38:08]
+Loading Test Cameras [19/03 03:39:25]
+  [MODEL LOADED (images freed).......................]  alloc=    279.3 MB  reserved=    368.0 MB  peak=   9586.3 MB [19/03 03:39:38]
+ [19/03 03:39:38]
+Profiling 3 frames... [19/03 03:39:38]
+ [19/03 03:39:38]
+
+>>> Frame 0 (camera uid=0) [19/03 03:39:38]
+========================================================================================== [19/03 03:39:38]
+  [0. baseline (model only, no images)...............]  alloc=    279.3 MB  reserved=    368.0 MB  peak=    279.3 MB [19/03 03:39:38]
+  [1. after prefilter_voxel..........................]  alloc=    280.2 MB  reserved=    466.0 MB  peak=    436.4 MB [19/03 03:39:39]
+       anchors: 933,874 total, 338,724 visible (36.3%) [19/03 03:39:39]
+  [2a. before generate (after cache clear)...........]  alloc=    280.2 MB  reserved=    368.0 MB  peak=    280.2 MB [19/03 03:39:39]
+  [2b. extract visible anchors.......................]  alloc=    371.9 MB  reserved=    430.0 MB  peak=    407.5 MB [19/03 03:39:42]
+  [2c. view features + cat...........................]  alloc=    423.9 MB  reserved=    476.0 MB  peak=    423.9 MB [19/03 03:39:42]
+  [2d. MLP opacity + mask (FP16).....................]  alloc=    439.0 MB  reserved=    526.0 MB  peak=    468.8 MB [19/03 03:39:42]
+       generated: 3,387,240, survived: 1,682,672 (49.7%) [19/03 03:39:42]
+  [2e. MLP color (FP16 + early filter)...............]  alloc=    449.4 MB  reserved=    526.0 MB  peak=    482.9 MB [19/03 03:39:42]
+  [2f. MLP cov (FP16 + early filter).................]  alloc=    471.9 MB  reserved=    572.0 MB  peak=    530.7 MB [19/03 03:39:42]
+  [2f+. convert FP16 -> FP32.........................]  alloc=    505.8 MB  reserved=    572.0 MB  peak=    530.7 MB [19/03 03:39:42]
+  [2g. filter offsets................................]  alloc=    525.0 MB  reserved=    572.0 MB  peak=    537.9 MB [19/03 03:39:42]
+  [2h. indexing (no repeat!) ★ GEN PEAK..............]  alloc=    595.6 MB  reserved=    652.0 MB  peak=    595.6 MB [19/03 03:39:42]
+  [2i. post-process (xyz/color/opacity/scaling/rot)..]  alloc=    660.9 MB  reserved=    698.0 MB  peak=    660.9 MB [19/03 03:39:42]
+  [2j. after del intermediates (optimized)...........]  alloc=    440.1 MB  reserved=    698.0 MB  peak=    660.9 MB [19/03 03:39:42]
+  [2k. after empty_cache.............................]  alloc=    440.1 MB  reserved=    558.0 MB  peak=    660.9 MB [19/03 03:39:42]
+  [3a. before rasterize..............................]  alloc=    459.3 MB  reserved=    558.0 MB  peak=    478.6 MB [19/03 03:39:42]
+  [3b. after rasterize ★ RAST PEAK...................]  alloc=    516.1 MB  reserved=    902.0 MB  peak=    833.7 MB [19/03 03:39:42]
+  [4. after full cleanup.............................]  alloc=    399.1 MB  reserved=    492.0 MB  peak=    833.7 MB [19/03 03:39:42]
+ [19/03 03:39:42]
+  ★ generate peak (alloc):       660.9 MB [19/03 03:39:42]
+  ★ rasterize peak (alloc):      833.7 MB [19/03 03:39:42]
+  ★ overall peak (alloc):        833.7 MB [19/03 03:39:42]
+  Resolution: 2594x1680 [19/03 03:39:42]
+  P (rasterized Gaussians): 1,682,672 [19/03 03:39:42]
+========================================================================================== [19/03 03:39:42]
+
+>>> Frame 1 (camera uid=1) [19/03 03:39:42]
+========================================================================================== [19/03 03:39:42]
+  [0. baseline (model only, no images)...............]  alloc=    280.3 MB  reserved=    492.0 MB  peak=    280.3 MB [19/03 03:39:42]
+  [1. after prefilter_voxel..........................]  alloc=    281.2 MB  reserved=    492.0 MB  peak=    436.4 MB [19/03 03:39:42]
+       anchors: 933,874 total, 308,186 visible (33.0%) [19/03 03:39:42]
+  [2a. before generate (after cache clear)...........]  alloc=    281.2 MB  reserved=    370.0 MB  peak=    281.2 MB [19/03 03:39:42]
+  [2b. extract visible anchors.......................]  alloc=    365.4 MB  reserved=    428.0 MB  peak=    401.7 MB [19/03 03:39:42]
+  [2c. view features + cat...........................]  alloc=    412.1 MB  reserved=    470.0 MB  peak=    412.1 MB [19/03 03:39:42]
+  [2d. MLP opacity + mask (FP16).....................]  alloc=    424.5 MB  reserved=    494.0 MB  peak=    451.4 MB [19/03 03:39:42]
+       generated: 3,081,860, survived: 1,471,905 (47.8%) [19/03 03:39:42]
+  [2e. MLP color (FP16 + early filter)...............]  alloc=    432.9 MB  reserved=    494.0 MB  peak=    463.9 MB [19/03 03:39:42]
+  [2f. MLP cov (FP16 + early filter).................]  alloc=    452.9 MB  reserved=    556.0 MB  peak=    506.1 MB [19/03 03:39:42]
+  [2f+. convert FP16 -> FP32.........................]  alloc=    483.5 MB  reserved=    556.0 MB  peak=    506.1 MB [19/03 03:39:42]
+  [2g. filter offsets................................]  alloc=    500.3 MB  reserved=    556.0 MB  peak=    511.5 MB [19/03 03:39:42]
+  [2h. indexing (no repeat!) ★ GEN PEAK..............]  alloc=    562.4 MB  reserved=    614.0 MB  peak=    562.4 MB [19/03 03:39:42]
+  [2i. post-process (xyz/color/opacity/scaling/rot)..]  alloc=    618.5 MB  reserved=    674.0 MB  peak=    618.5 MB [19/03 03:39:42]
+  [2j. after del intermediates (optimized)...........]  alloc=    419.7 MB  reserved=    674.0 MB  peak=    618.5 MB [19/03 03:39:42]
+  [2k. after empty_cache.............................]  alloc=    419.7 MB  reserved=    516.0 MB  peak=    618.5 MB [19/03 03:39:42]
+  [3a. before rasterize..............................]  alloc=    436.5 MB  reserved=    516.0 MB  peak=    453.4 MB [19/03 03:39:42]
+  [3b. after rasterize ★ RAST PEAK...................]  alloc=    492.1 MB  reserved=    872.0 MB  peak=    820.9 MB [19/03 03:39:42]
+  [4. after full cleanup.............................]  alloc=    391.1 MB  reserved=    482.0 MB  peak=    820.9 MB [19/03 03:39:42]
+ [19/03 03:39:42]
+  ★ generate peak (alloc):       618.5 MB [19/03 03:39:42]
+  ★ rasterize peak (alloc):      820.9 MB [19/03 03:39:42]
+  ★ overall peak (alloc):        820.9 MB [19/03 03:39:42]
+  Resolution: 2594x1680 [19/03 03:39:42]
+  P (rasterized Gaussians): 1,471,905 [19/03 03:39:42]
+========================================================================================== [19/03 03:39:42]
+
+>>> Frame 2 (camera uid=2) [19/03 03:39:42]
+========================================================================================== [19/03 03:39:42]
+  [0. baseline (model only, no images)...............]  alloc=    280.3 MB  reserved=    482.0 MB  peak=    280.3 MB [19/03 03:39:42]
+  [1. after prefilter_voxel..........................]  alloc=    281.2 MB  reserved=    482.0 MB  peak=    436.4 MB [19/03 03:39:42]
+       anchors: 933,874 total, 346,634 visible (37.1%) [19/03 03:39:42]
+  [2a. before generate (after cache clear)...........]  alloc=    281.2 MB  reserved=    370.0 MB  peak=    281.2 MB [19/03 03:39:42]
+  [2b. extract visible anchors.......................]  alloc=    375.4 MB  reserved=    432.0 MB  peak=    410.8 MB [19/03 03:39:42]
+  [2c. view features + cat...........................]  alloc=    427.6 MB  reserved=    480.0 MB  peak=    427.6 MB [19/03 03:39:42]
+  [2d. MLP opacity + mask (FP16).....................]  alloc=    441.9 MB  reserved=    532.0 MB  peak=    473.7 MB [19/03 03:39:42]
+       generated: 3,466,340, survived: 1,734,070 (50.0%) [19/03 03:39:42]
+  [2e. MLP color (FP16 + early filter)...............]  alloc=    452.7 MB  reserved=    532.0 MB  peak=    488.0 MB [19/03 03:39:42]
+  [2f. MLP cov (FP16 + early filter).................]  alloc=    475.8 MB  reserved=    580.0 MB  peak=    535.3 MB [19/03 03:39:42]
+  [2f+. convert FP16 -> FP32.........................]  alloc=    510.7 MB  reserved=    580.0 MB  peak=    535.3 MB [19/03 03:39:42]
+  [2g. filter offsets................................]  alloc=    530.5 MB  reserved=    580.0 MB  peak=    543.8 MB [19/03 03:39:42]
+  [2h. indexing (no repeat!) ★ GEN PEAK..............]  alloc=    604.4 MB  reserved=    662.0 MB  peak=    604.4 MB [19/03 03:39:42]
+  [2i. post-process (xyz/color/opacity/scaling/rot)..]  alloc=    670.8 MB  reserved=    730.0 MB  peak=    670.8 MB [19/03 03:39:42]
+  [2j. after del intermediates (optimized)...........]  alloc=    444.0 MB  reserved=    730.0 MB  peak=    670.8 MB [19/03 03:39:42]
+  [2k. after empty_cache.............................]  alloc=    444.0 MB  reserved=    538.0 MB  peak=    670.8 MB [19/03 03:39:42]
+  [3a. before rasterize..............................]  alloc=    463.8 MB  reserved=    538.0 MB  peak=    483.7 MB [19/03 03:39:42]
+  [3b. after rasterize ★ RAST PEAK...................]  alloc=    520.4 MB  reserved=    962.0 MB  peak=    894.4 MB [19/03 03:39:42]
+  [4. after full cleanup.............................]  alloc=    401.1 MB  reserved=    496.0 MB  peak=    894.4 MB [19/03 03:39:42]
+ [19/03 03:39:42]
+  ★ generate peak (alloc):       670.8 MB [19/03 03:39:42]
+  ★ rasterize peak (alloc):      894.4 MB [19/03 03:39:42]
+  ★ overall peak (alloc):        894.4 MB [19/03 03:39:42]
+  Resolution: 2594x1680 [19/03 03:39:42]
+  P (rasterized Gaussians): 1,734,070 [19/03 03:39:42]
+========================================================================================== [19/03 03:39:42]
